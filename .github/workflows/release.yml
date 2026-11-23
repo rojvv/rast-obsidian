@@ -1,0 +1,38 @@
+name: Release
+on:
+  push:
+    tags:
+      - '[0-9]*'
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Validate release version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const read = path => JSON.parse(fs.readFileSync(path, 'utf8'));
+          const manifest = read('manifest.json');
+          if (manifest.version !== process.env.RELEASE_TAG ||
+              manifest.version !== read('package.json').version ||
+              manifest.version !== read('package-lock.json').version ||
+              manifest.minAppVersion !== read('versions.json')[manifest.version]) {
+            throw new Error('Tag, package, lockfile, manifest, and compatibility versions must agree');
+          }
+          JS
+      - run: npm ci
+      - run: npm run check
+      - name: Publish release with Obsidian assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" main.js manifest.json styles.css --verify-tag --title "ڕاست $RELEASE_TAG" --generate-notes
