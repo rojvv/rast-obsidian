@@ -22,12 +22,22 @@ jobs:
           import fs from 'node:fs';
           const read = path => JSON.parse(fs.readFileSync(path, 'utf8'));
           const manifest = read('manifest.json');
-          if (manifest.version !== process.env.RELEASE_TAG ||
-              manifest.version !== read('package.json').version ||
-              manifest.version !== read('package-lock.json').version ||
-              manifest.minAppVersion !== read('versions.json')[manifest.version]) {
-            throw new Error('Tag, package, lockfile, manifest, and compatibility versions must agree');
+          const lock = read('package-lock.json');
+          const expected = process.env.RELEASE_TAG;
+          const versions = {
+            'manifest.json': manifest.version,
+            'package.json': read('package.json').version,
+            'package-lock.json': lock.version,
+            'package-lock.json packages[""]': lock.packages?.['']?.version,
+          };
+          const errors = Object.entries(versions)
+            .filter(([, version]) => version !== expected)
+            .map(([file, version]) => `${file}: expected tag ${expected}, got ${version}`);
+          const compatibility = read('versions.json')[manifest.version];
+          if (compatibility !== manifest.minAppVersion) {
+            errors.push(`versions.json[${manifest.version}]: expected ${manifest.minAppVersion}, got ${compatibility}`);
           }
+          if (errors.length) throw new Error(errors.join('\n'));
           JS
       - run: npm ci
       - run: npm run check
