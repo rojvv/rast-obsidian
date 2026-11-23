@@ -2,7 +2,7 @@
   "name": "rast-obsidian",
   "version": "0.2.0",
   "private": true,
-  "description": "Kurdish proofreading with ڕاست in Obsidian.",
+  "description": "Kurdish proofreading with Rast in Obsidian.",
   "license": "MIT",
   "scripts": {
     "dev": "node esbuild.config.mjs --watch",

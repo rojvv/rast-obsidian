@@ -1,7 +1,7 @@
 {
   "id": "rast",
   "name": "Rast",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "minAppVersion": "1.8.7",
   "description": "Check Kurdish spelling and orthography in notes and selections with Rast.",
   "author": "Rast",
