@@ -41,44 +41,44 @@ function suggestionTooltip(issue: Issue, focus = false): Tooltip {
     arrow: false,
     create(view) {
       const document = view.dom.ownerDocument;
-      const dom = document.createElement('div');
+      const dom = document.createDocumentFragment().createEl('div');
       dom.className = 'rast-tooltip';
       dom.dir = 'auto';
       dom.setAttribute('role', 'dialog');
       dom.setAttribute('aria-label', 'ڕاست: Suggestions');
-      const header = dom.appendChild(document.createElement('div'));
+      const header = dom.createEl('div');
       header.className = 'rast-tooltip-header';
-      const brand = header.appendChild(document.createElement('span'));
+      const brand = header.createEl('span');
       brand.className = 'rast-tooltip-brand';
       brand.textContent = 'ڕاست';
-      const close = header.appendChild(document.createElement('button'));
+      const close = header.createEl('button');
       close.className = 'rast-tooltip-close';
       close.textContent = '×';
       close.setAttribute('aria-label', 'Close suggestions');
       close.addEventListener('click', () => { dismiss(view); view.focus(); });
-      const heading = dom.appendChild(document.createElement('div'));
+      const heading = dom.createEl('div');
       heading.setAttribute('role', 'heading');
       heading.setAttribute('aria-level', '3');
       heading.className = 'rast-tooltip-title';
       heading.textContent = issue.title || 'ڕاست';
       if (issue.description) {
-        const description = dom.appendChild(document.createElement('p'));
+        const description = dom.createEl('p');
         description.className = 'rast-tooltip-description';
         description.textContent = issue.description;
       }
-      const choices = dom.appendChild(document.createElement('div'));
+      const choices = dom.createEl('div');
       choices.className = 'rast-replacements';
       for (const replacement of issue.replacements) {
-        const button = choices.appendChild(document.createElement('button'));
+        const button = choices.createEl('button');
         button.className = 'rast-replacement';
         button.textContent = replacement;
         button.dir = 'auto';
         button.setAttribute('aria-label', `Replace with ${replacement}`);
         button.addEventListener('click', () => applySuggestion(view, issue, replacement));
       }
-      const footer = dom.appendChild(document.createElement('div'));
+      const footer = dom.createEl('div');
       footer.className = 'rast-tooltip-footer';
-      const ignore = footer.appendChild(document.createElement('button'));
+      const ignore = footer.createEl('button');
       ignore.textContent = 'Ignore';
       ignore.className = 'rast-ignore';
       ignore.addEventListener('click', () => {
@@ -92,7 +92,14 @@ function suggestionTooltip(issue: Issue, focus = false): Tooltip {
       });
       // Keep mouse presses in the popup from moving the editor selection.
       dom.addEventListener('mousedown', event => event.stopPropagation());
-      return { dom, mount: () => { if (focus) (dom.querySelector<HTMLButtonElement>('.rast-replacement') ?? ignore).focus(); } };
+      return {
+        dom,
+        mount: () => {
+          const parent = dom.parentElement;
+          if (parent?.classList.contains('cm-tooltip-hover')) parent.classList.add('rast-tooltip-host');
+          if (focus) (dom.querySelector<HTMLButtonElement>('.rast-replacement') ?? ignore).focus();
+        },
+      };
     },
   };
 }

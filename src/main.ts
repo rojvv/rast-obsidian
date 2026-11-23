@@ -107,13 +107,36 @@ export default class RastPlugin extends Plugin {
 
 class RastSettings extends PluginSettingTab {
   constructor(private plugin: RastPlugin) { super(plugin.app, plugin); }
+  // Structural typing keeps the build compatible with the 1.8.7 API declarations.
+  getSettingDefinitions(): { name: string; desc: string; render?: (setting: Setting) => void }[] {
+    return [
+      {
+        name: 'About Rast',
+        desc: 'ڕاست checks Kurdish text using wsbapp-ku.rast.krd. Running a check sends the current note or selection, including Markdown, properties, and code in that range. Suggestions appear as underlines; hover or tap to review them.',
+      },
+      {
+        name: 'Check automatically while typing',
+        desc: 'Send the active note to Rast after a 650 ms typing pause and when switching notes. Requires internet. Off by default; manual commands send text only when invoked.',
+        render: setting => {
+          setting.addToggle(toggle => toggle.setValue(this.plugin.automatic)
+            .onChange(async enabled => { await this.plugin.setAutomatic(enabled); }));
+        },
+      },
+      {
+        name: 'Keyboard and storage',
+        desc: 'Keyboard users: run “Show suggestions at cursor or next issue” to focus the popup. Escape closes it. Replacements support normal Undo. The plugin saves only this setting and a service session ID.',
+      },
+    ];
+  }
   display(): void {
     this.containerEl.empty();
-    this.containerEl.createEl('p', { text: 'ڕاست checks Kurdish text using wsbapp-ku.rast.krd. Running a check sends the current note or selection, including Markdown, properties, and code in that range. Suggestions appear as underlines; hover or tap to review them.' });
-    new Setting(this.containerEl)
-      .setName('Check automatically while typing')
-      .setDesc('Send the active note to Rast after a 650 ms typing pause and when switching notes. Requires internet. Off by default; manual commands send text only when invoked.')
-      .addToggle(toggle => toggle.setValue(this.plugin.automatic).onChange(async enabled => { await this.plugin.setAutomatic(enabled); }));
-    this.containerEl.createEl('p', { text: 'Keyboard users: run “Show suggestions at cursor or next issue” to focus the popup. Escape closes it. Replacements support normal Undo. The plugin saves only this setting and a service session ID.' });
+    for (const definition of this.getSettingDefinitions()) {
+      if (definition.render) {
+        const setting = new Setting(this.containerEl).setName(definition.name).setDesc(definition.desc);
+        definition.render(setting);
+      } else {
+        this.containerEl.createEl('p', { text: definition.desc });
+      }
+    }
   }
 }

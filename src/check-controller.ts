@@ -17,14 +17,14 @@ export interface Checker {
 /** One lifecycle per editor; stale, canceled and switched-file replies never publish. */
 export class CheckController {
   private request?: AbortController;
-  private timer?: ReturnType<typeof setTimeout>;
+  private timer?: number;
   private destroyed = false;
   private file: unknown;
   constructor(private port: CheckPort, private client: Checker, private delay = 650) {
     this.file = port.file();
   }
   cancel(): void {
-    clearTimeout(this.timer);
+    window.clearTimeout(this.timer);
     this.timer = undefined;
     this.request?.abort();
     this.request = undefined;
@@ -35,7 +35,7 @@ export class CheckController {
     this.file = this.port.file();
     if (clear || changedFile) this.port.publish([]);
     if (this.destroyed || !this.port.active() || !this.port.automatic()) return;
-    this.timer = setTimeout(() => { void this.run(); }, this.delay);
+    this.timer = window.setTimeout(() => { void this.run(); }, this.delay);
   }
   async run(range?: { from: number; to: number }, notify = false): Promise<void> {
     this.cancel();

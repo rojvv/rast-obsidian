@@ -1,3 +1,4 @@
+import './window';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { RastClient, waitFor } from '../src/client';
@@ -109,4 +110,18 @@ test('native HTTP waits have bounded timeout and cancellation', async () => {
   const pending = waitFor(new Promise(() => {}), controller.signal, 10000);
   controller.abort();
   await assert.rejects(pending, { name: 'AbortError' });
+});
+
+test('HTTP waits normalize non-Error rejections and preserve existing Errors', async () => {
+  const signal = new AbortController().signal;
+  for (const reason of ['Offline', null, { status: 503 }]) {
+    await assert.rejects(waitFor(Promise.reject(reason), signal, 100), error => {
+      assert.ok(error instanceof Error);
+      assert.equal(error.cause, reason);
+      if (typeof reason === 'string') assert.equal(error.message, reason);
+      return true;
+    });
+  }
+  const original = new Error('Offline');
+  await assert.rejects(waitFor(Promise.reject(original), signal, 100), error => error === original);
 });

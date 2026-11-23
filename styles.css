@@ -1,15 +1,11 @@
 .rast-underline {
-  text-decoration-line: underline;
-  text-decoration-style: wavy;
-  text-decoration-color: var(--text-error);
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 4px;
+  border-bottom: 1.5px dotted var(--text-error);
   cursor: pointer;
 }
 
 /* Obsidian can mount tooltips outside .cm-editor. Scope to our popup,
    never to an editor ancestor. Cover the hover wrapper and pinned root. */
-.cm-tooltip.cm-tooltip-hover:has(> .rast-tooltip),
+.cm-tooltip.cm-tooltip-hover.rast-tooltip-host,
 .cm-tooltip.rast-tooltip {
   color: var(--text-normal, #222222);
   background: var(--background-primary, #ffffff);

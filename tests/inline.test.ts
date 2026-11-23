@@ -15,6 +15,12 @@ for (const key of ['window', 'document', 'MutationObserver', 'HTMLElement', 'Nod
 }
 Object.defineProperty(globalThis, 'requestAnimationFrame', { value: win.requestAnimationFrame.bind(win), configurable: true });
 Object.defineProperty(globalThis, 'cancelAnimationFrame', { value: win.cancelAnimationFrame.bind(win), configurable: true });
+// Obsidian supplies this DOM helper at runtime, including on document fragments.
+win.Node.prototype.createEl = function<K extends keyof HTMLElementTagNameMap>(tag: K): HTMLElementTagNameMap[K] {
+  const element = this.ownerDocument!.createElement(tag);
+  this.appendChild(element);
+  return element;
+};
 // jsdom has no layout engine; provide deterministic editor geometry.
 const rect = { x: 0, y: 0, left: 0, right: 200, top: 0, bottom: 20, width: 200, height: 20, toJSON: () => ({}) };
 win.Range.prototype.getBoundingClientRect = () => rect;
@@ -96,6 +102,7 @@ test('hover shows suggestions without moving focus, and an edit closes the popup
     const popup = view.dom.querySelector('.rast-tooltip');
     assert.ok(popup);
     assert.equal(popup.contains(document.activeElement), false);
+    assert.ok(popup.parentElement?.classList.contains('rast-tooltip-host'));
     view.dispatch({ changes: { from: 0, insert: 'x' } });
     assert.equal(view.dom.querySelector('.rast-tooltip'), null);
   } finally { view.destroy(); }

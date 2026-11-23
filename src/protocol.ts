@@ -9,7 +9,7 @@ export interface Issue {
   replacements: string[];
 }
 export function parseDescription(value: string) {
-  const match = /\s*\[([^\[\]\r\n]+)\]\s*$/u.exec(value);
+  const match = /\s*\[([^\r\n[\]]+)\]\s*$/u.exec(value);
   const replacements =
     match?.[1].split("،").map((s) => s.trim()).filter(Boolean) ?? [];
   return {

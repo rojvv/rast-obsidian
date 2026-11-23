@@ -12,12 +12,12 @@ function aborted(): Error { return new DOMException('Canceled', 'AbortError'); }
 /** Bound native HTTP calls too: requestUrl itself does not offer cancellation. */
 export function waitFor<T>(promise: Promise<T>, signal: AbortSignal, timeout: number): Promise<T> {
   return new Promise((resolve, reject) => {
-    const cleanup = () => { clearTimeout(timer); signal.removeEventListener('abort', cancel); };
+    const cleanup = () => { window.clearTimeout(timer); signal.removeEventListener('abort', cancel); };
     const cancel = () => { cleanup(); reject(aborted()); };
-    const timer = setTimeout(() => { cleanup(); reject(new Error('The service timed out. Please try again.')); }, timeout);
+    const timer = window.setTimeout(() => { cleanup(); reject(new Error('The service timed out. Please try again.')); }, timeout);
     signal.addEventListener('abort', cancel, { once: true });
     if (signal.aborted) cancel();
-    promise.then(value => { cleanup(); resolve(value); }, error => { cleanup(); reject(error); });
+    promise.then(value => { cleanup(); resolve(value); }, error => { cleanup(); reject(error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Could not check text. Please try again.', { cause: error })); });
   });
 }
 
@@ -75,7 +75,7 @@ export class RastClient {
               if (issues.some(issue => issue.length <= 0 || issue.offset + issue.length > chunk.text.length)) throw new Error('Invalid issue position from Rast.');
               resolve(issues.map(issue => ({ ...issue, offset: issue.offset + chunk.offset }))
                 .filter(issue => issue.offset >= chunk.start && issue.offset < chunk.end));
-            } catch (error) { reject(error); }
+            } catch (error) { reject(error instanceof Error ? error : new Error(typeof error === 'string' ? error : 'Could not check text. Please try again.', { cause: error })); }
           };
           const encoded = new TextEncoder().encode(chunk.text);
           const message = new Uint8Array(16 + encoded.length);

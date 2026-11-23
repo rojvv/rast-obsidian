@@ -1,3 +1,4 @@
+import './window';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CheckController, type Checker } from '../src/check-controller';
